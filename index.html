@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arctic Login System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* Background Animation */
+        .snowflakes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .snowflake {
+            position: absolute;
+            top: -10px;
+            animation: fall linear infinite;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1em;
+            user-select: none;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-100vh) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #fff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo .tagline {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9em;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #fff;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #64b5f6;
+            box-shadow: 0 0 20px rgba(100, 181, 246, 0.3);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #64b5f6, #42a5f5);
+            color: white;
+            box-shadow: 0 4px 15px rgba(100, 181, 246, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(100, 181, 246, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-admin {
+            background: linear-gradient(45deg, #ff6b6b, #ff5252);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            margin-top: 10px;
+        }
+
+        .btn-admin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            margin-bottom: 30px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #64b5f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #fff;
+            font-size: 14px;
+        }
+
+        /* Success/Error Messages */
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .message.error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            display: none;
+        }
+
+        .user-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .user-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .delete-btn {
+            background: #ff5252;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+            
+            .logo h1 {
+                font-size: 2em;
+            }
+        }
+
+        /* Hide forms initially */
+        .form-container {
+            display: none;
+        }
+
+        .form-container.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Snowflakes Animation -->
+    <div class="snowflakes"></div>
+
+    <div class="container">
+        <div class="logo">
+            <h1>❄️ Arctic</h1>
+            <p class="tagline">Secure Login System</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="showTab('login')">เข้าสู่ระบบ</button>
+            <button class="tab-btn" onclick="showTab('register')">สมัครสมาชิก</button>
+            <button class="tab-btn" onclick="showTab('admin')">แอดมิน</button>
+        </div>
+
+        <!-- Messages -->
+        <div id="message"></div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">กำลังประมวลผล...</div>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-form" class="form-container active">
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="login-username">ชื่อผู้ใช้</label>
+                    <input type="text" id="login-username" placeholder="กรอกชื่อผู้ใช้" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">รหัสผ่าน</label>
+                    <input type="password" id="login-password" placeholder="กรอกรหัสผ่าน" required>
+                </div>
+                <button type="submit" class="btn btn-primary">เข้าสู่ระบบ</button>
+            </form>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-form" class="form-container">
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label for="reg-username">ชื่อผู้ใช้</label>
+                    <input type="text" id="reg-username" placeholder="กรอกชื่อผู้ใช้" required minlength="3">
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">รหัสผ่าน</label>
+                    <input type="password" id="reg-password" placeholder="กรอกรหัสผ่าน" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="reg-confirm-password">ยืนยันรหัสผ่าน</label>
+                    <input type="password" id="reg-confirm-password" placeholder="ยืนยันรหัสผ่าน" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-email">อีเมล</label>
+                    <input type="email" id="reg-email" placeholder="กรอกอีเมล" required>
+                </div>
+                <button type="submit" class="btn btn-primary">สมัครสมาชิก</button>
+            </form>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="admin-form" class="form-container">
+            <div class="admin-panel">
+                <form onsubmit="handleAdminLogin(event)" id="admin-login">
+                    <div class="form-group">
+                        <label for="admin-username">ชื่อผู้ใช้แอดมิน</label>
+                        <input type="text" id="admin-username" placeholder="admin" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-password">รหัสผ่านแอดมิน</label>
+                        <input type="password" id="admin-password" placeholder="admin123" required>
+                    </div>
+                    <button type="submit" class="btn btn-admin">เข้าสู่ระบบแอดมิน</button>
+                </form>
+
+                <div id="admin-panel" style="display: none;">
+                    <h3 style="color: #fff; margin-bottom: 20px;">จัดการผู้ใช้</h3>
+                    
+                    <form onsubmit="handleAddUser(event)">
+                        <div class="form-group">
+                            <label for="add-username">เพิ่มชื่อผู้ใช้</label>
+                            <input type="text" id="add-username" placeholder="ชื่อผู้ใช้ใหม่" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-password">เพิ่มรหัสผ่าน</label>
+                            <input type="password" id="add-password" placeholder="รหัสผ่านใหม่" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-email">เพิ่มอีเมล</label>
+                            <input type="email" id="add-email" placeholder="อีเมลใหม่" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">เพิ่มผู้ใช้</button>
+                    </form>
+
+                    <div class="user-list" id="user-list">
+                        <p style="color: #fff; text-align: center;">กำลังโหลดรายชื่อผู้ใช้...</p>
+                    </div>
+
+                    <button type="button" class="btn btn-secondary" onclick="showTab('login')">กลับไปหน้าเข้าสู่ระบบ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Google Sheets Configuration
+        const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+        const ADMIN_KEY = 'admin123';
+        
+        // Local cache for better performance
+        let usersCache = [];
+
+        // Initialize snowflakes
+        function createSnowflakes() {
+            const snowflakesContainer = document.querySelector('.snowflakes');
+            const snowflakeSymbols = ['❄', '❅', '❆'];
+            
+            for (let i = 0; i < 50; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                snowflake.innerHTML = snowflakeSymbols[Math.floor(Math.random() * snowflakeSymbols.length)];
+                snowflake.style.left = Math.random() * 100 + '%';
+                snowflake.style.animationDuration = Math.random() * 3 + 2 + 's';
+                snowflake.style.animationDelay = Math.random() * 2 + 's';
+                snowflake.style.fontSize = Math.random() * 10 + 10 + 'px';
+                snowflakesContainer.appendChild(snowflake);
+            }
+        }
+
+        // Show/Hide loading
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // Show messages
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="message ${type}">${message}</div>`;
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // Tab navigation
+        function showTab(tabName) {
+            // Hide all forms
+            document.querySelectorAll('.form-container').forEach(form => {
+                form.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected form
+            document.getElementById(tabName + '-form').classList.add('active');
+            
+            // Add active class to clicked tab button
+            event.target.classList.add('active');
+            
+            // Clear messages
+            document.getElementById('message').innerHTML = '';
+        }
+
+        // Input validation
+        function validateInput(input, minLength = 1) {
+            if (input.length < minLength) {
+                return false;
+            }
+            // Basic XSS prevention
+            const dangerousChars = /<script|javascript:|on\w+=/i;
+            return !dangerousChars.test(input);
+        }
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        // Hash password (basic implementation)
+        function hashPassword(password) {
+            // In real implementation, use proper hashing like bcrypt
+            let hash = 0;
+            for (let i = 0; i < password.length; i++) {
+                const char = password.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32-bit integer
+            }
+            return hash.toString();
+        }
+
+        // API Communication Functions
+        async function callGoogleSheets(action, data) {
+            try {
+                const formData = new FormData();
+                formData.append('action', action);
+                
+                Object.keys(data).forEach(key => {
+                    formData.append(key, data[key]);
+                });
+                
+                const response = await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                console.error('API Error:', error);
+                return { success: false, message: 'เกิดข้อผิดพลาดในการเชื่อมต่อ' };
+            }
+        }
+
+        // Handle Login with Google Sheets
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            
+            // Validation
+            if (!validateInput(username, 3)) {
+                showMessage('ชื่อผู้ใช้ไม่ถูกต้อง', 'error');
+                return;
+            }
+            
+            if (!validateInput(password, 6)) {
+                showMessage('รหัสผ่านไม่ถูกต้อง', 'error');
+                return;
+            }
+            
+            showLoading();
+            
+            const result = await callGoogleSheets('login', {
+                username: username,
+                password: password
+            });
+            
+            hideLoading();
+            
+            if (result.success) {
+                showMessage('เข้าสู่ระบบสำเร็จ! กำลังเปลี่ยนหน้า...', 'success');
+                setTimeout(() => {
+                    // Redirect to dashboard or main page
+                    window.location.href = 'https://example.com/dashboard';
+                }, 2000);
+            } else {
+                showMessage(result.message || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'error');
+            }
+        }
+
+        // Handle Registration with Google Sheets
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('reg-username').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const confirmPassword = document.getElementById('reg-confirm-password').value;
+            const email = document.getElementById('reg-email').value.trim();
+            
+            // Validation
+            if (!validateInput(username, 3)) {
+                showMessage('ชื่อผู้ใช้ต้องมีความยาวอย่างน้อย 3 ตัวอักษร', 'error');
+                return;
+            }
+            
+            if (!validateInput(password, 6)) {
+                showMessage('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร', 'error');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showMessage('รหัสผ่านไม่ตรงกัน', 'error');
+                return;
+            }
+            
+            if (!validateEmail(email)) {
+                showMessage('รูปแบบอีเมลไม่ถูกต้อง', 'error');
+                return;
+            }
+            
+            showLoading();
+            
+            const result = await callGoogleSheets('register', {
+                username: username,
+                password: password,
+                email: email
+            });
+            
+            hideLoading();
+            
+            if (result.success) {
+                showMessage('สมัครสมาชิกสำเร็จ! สามารถเข้าสู่ระบบได้แล้ว', 'success');
+                
+                // Clear form
+                document.getElementById('reg-username').value = '';
+                document.getElementById('reg-password').value = '';
+                document.getElementById('reg-confirm-password').value = '';
+                document.getElementById('reg-email').value = '';
+                
+                // Switch to login tab
+                setTimeout(() => {
+                    showTab('login');
+                }, 2000);
+            } else {
+                showMessage(result.message || 'เกิดข้อผิดพลาดในการสมัครสมาชิก', 'error');
+            }
+        }
+
+        // Handle Admin Login
+        async function handleAdminLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+            
+            if (username === 'admin' && password === 'admin123') {
+                showLoading();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                hideLoading();
+                
+                document.getElementById('admin-login').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                loadUserList();
+                showMessage('เข้าสู่ระบบแอดมินสำเร็จ', 'success');
+            } else {
+                showMessage('ข้อมูลแอดมินไม่ถูกต้อง', 'error');
+            }
+        }
+
+        // Handle Add User (Admin) with Google Sheets
+        async function handleAddUser(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('add-username').value.trim();
+            const password = document.getElementById('add-password').value;
+            const email = document.getElementById('add-email').value.trim();
+            
+            // Validation
+            if (!validateInput(username, 3) || !validateInput(password, 6) || !validateEmail(email)) {
+                showMessage('ข้อมูลไม่ถูกต้อง', 'error');
+                return;
+            }
+            
+            showLoading();
+            
+            const result = await callGoogleSheets('addUser', {
+                adminKey: ADMIN_KEY,
+                username: username,
+                password: password,
+                email: email
+            });
+            
+            hideLoading();
+            
+            if (result.success) {
+                showMessage('เพิ่มผู้ใช้สำเร็จ', 'success');
+                
+                // Clear form
+                document.getElementById('add-username').value = '';
+                document.getElementById('add-password').value = '';
+                document.getElementById('add-email').value = '';
+                
+                // Reload user list
+                loadUserList();
+            } else {
+                showMessage(result.message || 'เกิดข้อผิดพลาดในการเพิ่มผู้ใช้', 'error');
+            }
+        }
+
+        // Load User List from Google Sheets
+        async function loadUserList() {
+            const userListDiv = document.getElementById('user-list');
+            userListDiv.innerHTML = '<p style="color: #fff; text-align: center;">กำลังโหลด...</p>';
+            
+            const result = await callGoogleSheets('getUsers', {});
+            
+            if (result.success && result.data) {
+                usersCache = result.data;
+                let html = '';
+                
+                result.data.forEach((user, index) => {
+                    html += `
+                        <div class="user-item">
+                            <div>
+                                <strong>${user.username}</strong><br>
+                                <small>${user.email}</small><br>
+                                <small style="opacity: 0.7;">${new Date(user.created_date).toLocaleDateString('th-TH')}</small>
+                            </div>
+                            <button class="delete-btn" onclick="deleteUser('${user.username}')">ลบ</button>
+                        </div>
+                    `;
+                });
+                
+                userListDiv.innerHTML = html || '<p style="color: #fff; text-align: center;">ไม่มีผู้ใช้</p>';
+            } else {
+                userListDiv.innerHTML = '<p style="color: #fff; text-align: center;">ไม่สามารถโหลดข้อมูลได้</p>';
+            }
+        }
+
+        // Delete User from Google Sheets
+        async function deleteUser(username) {
+            if (confirm('คุณแน่ใจหรือไม่ที่จะลบผู้ใช้ ' + username + '?')) {
+                showLoading();
+                
+                const result = await callGoogleSheets('deleteUser', {
+                    adminKey: ADMIN_KEY,
+                    username: username
+                });
+                
+                hideLoading();
+                
+                if (result.success) {
+                    showMessage('ลบผู้ใช้สำเร็จ', 'success');
+                    loadUserList();
+                } else {
+                    showMessage(result.message || 'เกิดข้อผิดพลาดในการลบผู้ใช้', 'error');
+                }
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            createSnowflakes();
+        });
+
+        // Google Sheets Integration Functions (Template)
+        /*
+        To integrate with Google Sheets, you'll need to:
+        1. Create a Google Sheet
+        2. Set up Google Apps Script
+        3. Replace the simulated functions below with actual API calls
+        
+        Example Google Apps Script code:
+        
+        function doPost(e) {
+            const ss = SpreadsheetApp.openById('YOUR_SHEET_ID');
+            const sheet = ss.getSheetByName('Users');
+            
+            const action = e.parameter.action;
+            
+            if (action === 'register') {
+                const username = e.parameter.username;
+                const password = e.parameter.password;
+                const email = e.parameter.email;
+                
+                // Check if user exists
+                const data = sheet.getDataRange().getValues();
+                for (let i = 1; i < data.length; i++) {
+                    if (data[i][0] === username || data[i][2] === email) {
+                        return ContentService.createTextOutput(JSON.stringify({
+                            success: false,
+                            message: 'User already exists'
+                        }));
+                    }
+                }
+                
+                // Add new user
+                sheet.appendRow([username, password, email, new Date()]);
+                
+                return ContentService.createTextOutput(JSON.stringify({
+                    success: true,
+                    message: 'User registered successfully'
+                }));
+            }
+            
+            if (action === 'login') {
+                const username = e.parameter.username;
+                const password = e.parameter.password;
+                
+                const data = sheet.getDataRange().getValues();
+                for (let i = 1; i < data.length; i++) {
+                    if (data[i][0] === username && data[i][1] === password) {
+                        return ContentService.createTextOutput(JSON.stringify({
+                            success: true,
+                            message: 'Login successful'
+                        }));
+                    }
+                }
+                
+                return ContentService.createTextOutput(JSON.stringify({
+                    success: false,
+                    message: 'Invalid credentials'
+                }));
+            }
+        }
+        */
+    </script>
+</body>
+</html>
